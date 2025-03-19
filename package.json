@@ -3,7 +3,7 @@
   "displayName": "MultiPackInstaller",
   "publisher": "Deepanshugarg",
   "description": "this extension we can install pacakge in our package having multiple runtime",
-  "version": "1.1.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.98.0"
   },
