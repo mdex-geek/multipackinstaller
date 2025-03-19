@@ -103,5 +103,5 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 ### Get Started Today! 🎉
 Don’t wait—install **MultiPackInstaller** now and revolutionize your development workflow. Your projects deserve the best, and we’re here to deliver it. Happy coding! 💻
 
-[Install from VS Code Marketplace](https://marketplace.visualstudio.com/itemId=your-extension-id)  
+[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Deepanshugarg.multipackinstaller)  
 [GitHub Repository](https://github.com/mdex-geek/multipackinstaller)
