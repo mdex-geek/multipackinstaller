@@ -1,10 +1,14 @@
 {
   "name": "multipackinstaller",
   "displayName": "MultiPackInstaller",
+  "publisher": "Deepanshugarg",
   "description": "this extension we can install pacakge in our package having multiple runtime",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.98.0"
+  },
+  "repository": {
+    "url": "https://github.com/mdex-geek/multipackinstaller.git"
   },
   "categories": [
     "Other"
@@ -15,17 +19,29 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "multipackinstaller.install",
-        "title": "multipackinstaller:Install pacakge"
-      },
-      {
-        "command": "multipackinstaller.viewHistory",
-        "title": "MultiPackInstaller: View Package Installation History"
+  "commands": [
+    {
+      "command": "multipackinstaller.install",
+      "title": "MultiPackInstaller: Install Package"
+    },
+    {
+      "command": "multipackinstaller.viewHistory",
+      "title": "MultiPackInstaller: View Package Installation History"
+    }
+  ],
+  "configuration": {
+    "title": "MultiPackInstaller",
+    "properties": {
+      "multipackinstaller.defaultPackageManager": {
+        "type": "string",
+        "enum": ["npm", "yarn", "pnpm", "bun", "deno"],
+        "default": "npm",
+        "description": "The default package manager to use when no lock file is found but a package.json exists."
       }
-    ]
-  },
+    }
+  }
+},
+
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",

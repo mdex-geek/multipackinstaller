@@ -13,7 +13,6 @@ interface PackageInstallEntry {
 export function activate(context: vscode.ExtensionContext) {
   let cachedPackageManager: string | null = null;
 
-  // Command to install a package
   let installCommand = vscode.commands.registerCommand('multipackinstaller.install', async () => {
     const quickPick = vscode.window.createQuickPick();
     quickPick.placeholder = 'Search for a package (e.g., lodash)';
@@ -94,18 +93,15 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    // Show the starting notification
     await new Promise<void>(resolve => {
       console.log(`Showing notification: Installing ${packageName} with ${packageManager}...`);
       vscode.window.showInformationMessage(`Installing ${packageName} with ${packageManager}...`, { modal: false });
       setTimeout(resolve, 1000);
     });
 
-    // Install the package and store in history
     await installPackage(packageManager, packageName, workspaceFolder, context);
   });
 
-  // Command to view installation history
   let viewHistoryCommand = vscode.commands.registerCommand('multipackinstaller.viewHistory', async () => {
     const history: PackageInstallEntry[] = context.globalState.get('packageInstallHistory', []);
 
@@ -160,10 +156,10 @@ async function searchPackages(query: string): Promise<any[]> {
 
 async function detectPackageManager(workspaceFolder: string): Promise<string | null> {
   const packageManagers = [
-    { name: 'bun', check: () => checkCommand('bun --version'), installCmd: `bun add` },
-    { name: 'pnpm', check: () => checkCommand('pnpm --version'), installCmd: `pnpm add` },
-    { name: 'yarn', check: () => checkCommand('yarn --version'), installCmd: `yarn add` },
     { name: 'npm', check: () => checkCommand('npm --version'), installCmd: `npm install` },
+    { name: 'yarn', check: () => checkCommand('yarn --version'), installCmd: `yarn add` },
+    { name: 'pnpm', check: () => checkCommand('pnpm --version'), installCmd: `pnpm add` },
+    { name: 'bun', check: () => checkCommand('bun --version'), installCmd: `bun add` },
     { name: 'deno', check: () => checkCommand('deno --version'), installCmd: `deno add` }
   ];
 
@@ -175,18 +171,35 @@ async function detectPackageManager(workspaceFolder: string): Promise<string | n
     'deno.json': 'deno'
   };
 
-  for (const [lockFile, pm] of Object.entries(lockFiles)) {
-    if (fs.existsSync(path.join(workspaceFolder, lockFile))) {
-      return pm;
+  console.log(`Workspace folder: ${workspaceFolder}`);
+
+  const packageJsonPath = path.join(workspaceFolder, 'package.json');
+  console.log(`Checking for package.json at: ${packageJsonPath}`);
+  if (fs.existsSync(packageJsonPath)) {
+    console.log('Found package.json');
+    for (const [lockFile, pm] of Object.entries(lockFiles)) {
+      const lockFilePath = path.join(workspaceFolder, lockFile);
+      console.log(`Checking for lock file: ${lockFilePath}`);
+      if (fs.existsSync(lockFilePath)) {
+        console.log(`Found lock file: ${lockFile}, using package manager: ${pm}`);
+        return pm;
+      }
     }
+    // If package.json exists but no lock file, use the user's preferred package manager
+    const defaultPackageManager = vscode.workspace.getConfiguration('multipackinstaller').get('defaultPackageManager', 'npm');
+    console.log(`No lock file found, using default package manager: ${defaultPackageManager}`);
+    return defaultPackageManager;
   }
 
+  console.log('No package.json or lock file found, checking for globally installed package managers...');
   for (const pm of packageManagers) {
     if (await pm.check()) {
+      console.log(`Found globally installed package manager: ${pm.name}`);
       return pm.name;
     }
   }
 
+  console.log('No package manager found, defaulting to npm');
   return 'npm';
 }
 
@@ -223,7 +236,6 @@ async function installPackage(packageManager: string, packageName: string, cwd: 
       return;
   }
 
-  // Show progress in the status bar
   await vscode.window.withProgress({
     location: vscode.ProgressLocation.Window,
     title: `Installing ${packageName} with ${packageManager}`,
@@ -245,7 +257,6 @@ async function installPackage(packageManager: string, packageName: string, cwd: 
         progress.report({ message: 'Installation complete!' });
         console.log(`Installation successful: ${packageName} with ${packageManager}`);
 
-        // Store the package in history
         const history: PackageInstallEntry[] = context.globalState.get('packageInstallHistory', []);
         history.push({
           packageName,
@@ -253,12 +264,10 @@ async function installPackage(packageManager: string, packageName: string, cwd: 
           timestamp: new Date().toISOString()
         });
 
-        // Limit history to 20 entries
         if (history.length > 20) {
-          history.shift(); // Remove the oldest entry
+          history.shift();
         }
 
-        // Update global state
         await context.globalState.update('packageInstallHistory', history);
 
         await new Promise<void>(resolve => {
